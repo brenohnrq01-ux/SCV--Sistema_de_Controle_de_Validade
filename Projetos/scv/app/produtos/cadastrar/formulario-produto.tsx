@@ -3,6 +3,17 @@
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  ArrowLeft,
+  CalendarDays,
+  CircleDollarSign,
+  Hash,
+  PackagePlus,
+  Save,
+  ShoppingBasket,
+  Warehouse,
+} from 'lucide-react'
+
 import { createClient } from '@/lib/supabase/client'
 
 export default function FormularioProduto() {
@@ -19,7 +30,9 @@ export default function FormularioProduto() {
   const [sucesso, setSucesso] = useState('')
   const [carregando, setCarregando] = useState(false)
 
-  async function cadastrarProduto(event: FormEvent<HTMLFormElement>) {
+  async function cadastrarProduto(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault()
 
     setErro('')
@@ -34,13 +47,20 @@ export default function FormularioProduto() {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      setErro('Sua sessão expirou. Faça login novamente.')
+      setErro(
+        'Sua sessão expirou. Faça login novamente.'
+      )
       setCarregando(false)
       return
     }
 
-    if (new Date(dataValidade) < new Date(dataEntrega)) {
-      setErro('A data de validade não pode ser anterior à data de entrega.')
+    if (
+      new Date(dataValidade) <
+      new Date(dataEntrega)
+    ) {
+      setErro(
+        'A data de validade não pode ser anterior à data de entrega.'
+      )
       setCarregando(false)
       return
     }
@@ -62,18 +82,26 @@ export default function FormularioProduto() {
       console.error(error)
 
       if (error.code === '23505') {
-        setErro('Já existe um produto cadastrado com esse lote.')
+        setErro(
+          'Já existe um produto cadastrado com esse lote.'
+        )
       } else if (error.code === '42501') {
-        setErro('Você não possui permissão para cadastrar produtos.')
+        setErro(
+          'Você não possui permissão para cadastrar produtos.'
+        )
       } else {
-        setErro(`Erro ao cadastrar produto: ${error.message}`)
+        setErro(
+          `Erro ao cadastrar produto: ${error.message}`
+        )
       }
 
       setCarregando(false)
       return
     }
 
-    setSucesso('Produto cadastrado com sucesso.')
+    setSucesso(
+      'Produto cadastrado com sucesso.'
+    )
 
     setLote('')
     setNome('')
@@ -88,110 +116,196 @@ export default function FormularioProduto() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100">
-      <header className="bg-blue-700 shadow">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              Cadastrar Produto
-            </h1>
+    <main className="min-h-screen bg-zinc-50">
+      <header className="relative overflow-hidden bg-gradient-to-r from-red-700 via-red-600 to-rose-600 shadow-lg">
+        <div className="absolute -left-20 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
 
-            <p className="text-sm text-blue-100">
-              Sistema de Controle de Validade
-            </p>
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur">
+              <PackagePlus size={26} />
+            </div>
+
+            <div>
+              <h1 className="text-2xl font-black text-white">
+                Cadastrar Produto
+              </h1>
+
+              <p className="text-sm text-red-100">
+                Adicione um novo lote ao estoque
+              </p>
+            </div>
           </div>
 
           <Link
             href="/dashboard"
-            className="rounded-lg bg-white px-4 py-2 font-medium text-blue-700 transition hover:bg-gray-100"
+            className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white hover:text-red-600"
           >
+            <ArrowLeft size={18} />
             Voltar
           </Link>
         </div>
       </header>
 
-      <div className="mx-auto max-w-3xl p-6">
-        <div className="rounded-xl bg-white p-8 shadow">
-          <form onSubmit={cadastrarProduto} className="space-y-6">
-            <div>
-              <label
-                htmlFor="lote"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Lote
-              </label>
+      <div className="mx-auto max-w-4xl px-6 py-8">
+        <div className="mb-8">
+          <p className="text-sm font-semibold uppercase tracking-wider text-red-600">
+            Estoque
+          </p>
 
-              <input
-                id="lote"
-                type="text"
-                value={lote}
-                onChange={(event) => setLote(event.target.value)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                placeholder="Ex.: LOTE-001"
-              />
+          <h2 className="mt-1 text-3xl font-black tracking-tight text-zinc-900">
+            Novo produto
+          </h2>
+
+          <p className="mt-2 text-zinc-500">
+            Preencha as informações do produto e do lote.
+          </p>
+        </div>
+
+        <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+          <div className="border-b border-zinc-100 p-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                <Warehouse size={22} />
+              </div>
+
+              <div>
+                <h3 className="font-bold text-zinc-900">
+                  Dados do produto
+                </h3>
+
+                <p className="text-sm text-zinc-500">
+                  Todos os campos são obrigatórios.
+                </p>
+              </div>
             </div>
+          </div>
 
-            <div>
-              <label
-                htmlFor="nome"
-                className="mb-2 block text-sm font-medium text-gray-700"
-              >
-                Nome do produto
-              </label>
+          <form
+            onSubmit={cadastrarProduto}
+            className="space-y-6 p-6 sm:p-8"
+          >
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="lote"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
+                >
+                  Lote
+                </label>
 
-              <input
-                id="nome"
-                type="text"
-                value={nome}
-                onChange={(event) => setNome(event.target.value)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                placeholder="Ex.: Leite Integral"
-              />
+                <div className="relative">
+                  <Hash
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="lote"
+                    type="text"
+                    required
+                    value={lote}
+                    onChange={(event) =>
+                      setLote(event.target.value)
+                    }
+                    placeholder="Ex.: LOTE-001"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="nome"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
+                >
+                  Nome do produto
+                </label>
+
+                <div className="relative">
+                  <ShoppingBasket
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="nome"
+                    type="text"
+                    required
+                    value={nome}
+                    onChange={(event) =>
+                      setNome(event.target.value)
+                    }
+                    placeholder="Ex.: Arroz 5kg"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label
                   htmlFor="valor"
-                  className="mb-2 block text-sm font-medium text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
                 >
                   Valor unitário
                 </label>
 
-                <input
-                  id="valor"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={valorUnitario}
-                  onChange={(event) => setValorUnitario(event.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                  placeholder="0,00"
-                />
+                <div className="relative">
+                  <CircleDollarSign
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="valor"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    value={valorUnitario}
+                    onChange={(event) =>
+                      setValorUnitario(
+                        event.target.value
+                      )
+                    }
+                    placeholder="0,00"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
               </div>
 
               <div>
                 <label
                   htmlFor="quantidade"
-                  className="mb-2 block text-sm font-medium text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
                 >
                   Quantidade
                 </label>
 
-                <input
-                  id="quantidade"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={quantidade}
-                  onChange={(event) => setQuantidade(event.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                  placeholder="1"
-                />
+                <div className="relative">
+                  <Warehouse
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="quantidade"
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    value={quantidade}
+                    onChange={(event) =>
+                      setQuantidade(
+                        event.target.value
+                      )
+                    }
+                    placeholder="1"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
               </div>
             </div>
 
@@ -199,61 +313,100 @@ export default function FormularioProduto() {
               <div>
                 <label
                   htmlFor="entrega"
-                  className="mb-2 block text-sm font-medium text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
                 >
                   Data de entrega
                 </label>
 
-                <input
-                  id="entrega"
-                  type="date"
-                  value={dataEntrega}
-                  onChange={(event) => setDataEntrega(event.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                />
+                <div className="relative">
+                  <CalendarDays
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="entrega"
+                    type="date"
+                    required
+                    value={dataEntrega}
+                    onChange={(event) =>
+                      setDataEntrega(
+                        event.target.value
+                      )
+                    }
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
               </div>
 
               <div>
                 <label
                   htmlFor="validade"
-                  className="mb-2 block text-sm font-medium text-gray-700"
+                  className="mb-2 block text-sm font-semibold text-zinc-700"
                 >
                   Data de validade
                 </label>
 
-                <input
-                  id="validade"
-                  type="date"
-                  value={dataValidade}
-                  onChange={(event) => setDataValidade(event.target.value)}
-                  required
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500"
-                />
+                <div className="relative">
+                  <CalendarDays
+                    size={18}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    id="validade"
+                    type="date"
+                    required
+                    value={dataValidade}
+                    onChange={(event) =>
+                      setDataValidade(
+                        event.target.value
+                      )
+                    }
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-zinc-900 outline-none transition focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
               </div>
             </div>
 
             {erro && (
-              <div className="rounded-lg bg-red-100 p-4 text-sm text-red-700">
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
                 {erro}
               </div>
             )}
 
             {sucesso && (
-              <div className="rounded-lg bg-green-100 p-4 text-sm text-green-700">
+              <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">
                 {sucesso}
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={carregando}
-              className="w-full rounded-lg bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {carregando ? 'Cadastrando...' : 'Cadastrar Produto'}
-            </button>
+            <div className="flex flex-col-reverse gap-3 border-t border-zinc-100 pt-6 sm:flex-row sm:justify-end">
+              <Link
+                href="/dashboard"
+                className="rounded-xl border border-zinc-200 px-5 py-3 text-center font-semibold text-zinc-600 transition hover:bg-zinc-50"
+              >
+                Cancelar
+              </Link>
+
+              <button
+                type="submit"
+                disabled={carregando}
+                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-6 py-3 font-bold text-white shadow-lg shadow-red-600/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-red-600/30 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Save size={18} />
+
+                {carregando
+                  ? 'Cadastrando...'
+                  : 'Cadastrar produto'}
+              </button>
+            </div>
           </form>
         </div>
+
+        <footer className="py-10 text-center text-sm text-zinc-400">
+          SCV • Sistema de Controle de Validade
+        </footer>
       </div>
     </main>
   )
