@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
+  Check,
   PackageMinus,
+  Search,
   Trash2,
   TriangleAlert,
 } from 'lucide-react'
@@ -25,6 +27,7 @@ export default function FormularioRemocao() {
 
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [produtoId, setProdutoId] = useState('')
+  const [busca, setBusca] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [removendo, setRemovendo] = useState(false)
 
@@ -50,16 +53,14 @@ export default function FormularioRemocao() {
 
     const { data, error } = await supabase
       .from('produtos')
-      .select(
-        `
-          id,
-          lote,
-          nome,
-          quantidade,
-          estado,
-          data_de_validade
-        `
-      )
+      .select(`
+        id,
+        lote,
+        nome,
+        quantidade,
+        estado,
+        data_de_validade
+      `)
       .eq('estado', 'ATIVO')
       .gt('data_de_validade', hojeFormatado)
       .order('data_de_validade', {
@@ -70,10 +71,7 @@ export default function FormularioRemocao() {
       })
 
     if (error) {
-      setErro(
-        `Erro ao carregar produtos: ${error.message}`
-      )
-
+      setErro(`Erro ao carregar produtos: ${error.message}`)
       setCarregando(false)
       return
     }
@@ -91,10 +89,22 @@ export default function FormularioRemocao() {
     setCarregando(false)
   }
 
+  const produtosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase()
+
+    if (!termo) return produtos
+
+    return produtos.filter((produto) => {
+      return (
+        produto.nome.toLowerCase().includes(termo) ||
+        produto.lote.toLowerCase().includes(termo)
+      )
+    })
+  }, [produtos, busca])
+
   const produtoSelecionado = useMemo(() => {
     return produtos.find(
-      (produto) =>
-        String(produto.id) === produtoId
+      (produto) => String(produto.id) === produtoId
     )
   }, [produtos, produtoId])
 
@@ -136,6 +146,7 @@ export default function FormularioRemocao() {
       `${produtoSelecionado.nome}, lote ${produtoSelecionado.lote}, foi removido com sucesso.`
     )
 
+    setBusca('')
     setProdutoId('')
 
     await carregarProdutos()
@@ -145,7 +156,6 @@ export default function FormularioRemocao() {
 
   return (
     <main className="min-h-screen bg-zinc-50">
-      {/* CABEÇALHO */}
       <header className="bg-gradient-to-r from-red-700 via-red-600 to-rose-600 text-white shadow-lg shadow-red-600/10">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div className="flex items-center gap-4">
@@ -166,9 +176,7 @@ export default function FormularioRemocao() {
 
           <button
             type="button"
-            onClick={() =>
-              router.push('/dashboard')
-            }
+            onClick={() => router.push('/dashboard')}
             className="flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20"
           >
             <ArrowLeft size={17} />
@@ -178,7 +186,6 @@ export default function FormularioRemocao() {
       </header>
 
       <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8">
-        {/* AVISO */}
         <div className="mb-6 flex items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-5">
           <TriangleAlert
             className="mt-0.5 shrink-0 text-amber-600"
@@ -191,14 +198,12 @@ export default function FormularioRemocao() {
             </h2>
 
             <p className="mt-1 text-sm leading-6 text-amber-800">
-              A retirada não apaga o produto do
-              histórico. O registro ficará marcado
-              como removido no sistema.
+              A retirada não apaga o produto do histórico.
+              O registro ficará marcado como removido no sistema.
             </p>
           </div>
         </div>
 
-        {/* FORMULÁRIO */}
         <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
           <div className="border-b border-zinc-100 p-6 sm:p-8">
             <h2 className="text-xl font-black text-zinc-900">
@@ -206,8 +211,7 @@ export default function FormularioRemocao() {
             </h2>
 
             <p className="mt-1 text-sm text-zinc-500">
-              Somente produtos ativos e ainda não
-              vencidos podem ser retirados.
+              Somente produtos ativos e ainda não vencidos podem ser retirados.
             </p>
           </div>
 
@@ -228,76 +232,131 @@ export default function FormularioRemocao() {
                 </h3>
 
                 <p className="mt-2 text-sm text-zinc-500">
-                  Não existem produtos ativos e
-                  dentro da validade disponíveis
+                  Não existem produtos ativos e dentro da validade disponíveis
                   para retirada.
                 </p>
               </div>
             ) : (
               <>
                 <label className="mb-2 block text-sm font-bold text-zinc-700">
-                  Selecione o produto
+                  Buscar produto
                 </label>
 
-                <select
-                  value={produtoId}
-                  onChange={(event) => {
-                    setProdutoId(
-                      event.target.value
-                    )
-                    setErro('')
-                    setSucesso('')
-                  }}
-                  className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-4 text-base text-zinc-900 outline-none focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
-                >
-                  {produtos.map((produto) => (
-                    <option
-                      key={produto.id}
-                      value={produto.id}
-                    >
-                      {produto.nome} — Lote{' '}
-                      {produto.lote} — Qtd.{' '}
-                      {produto.quantidade}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <Search
+                    size={18}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
+                  />
+
+                  <input
+                    type="text"
+                    value={busca}
+                    onChange={(event) => {
+                      setBusca(event.target.value)
+                      setErro('')
+                      setSucesso('')
+                    }}
+                    placeholder="Digite o nome ou o lote..."
+                    className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 py-4 pl-11 pr-4 text-base text-zinc-900 outline-none focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10"
+                  />
+                </div>
+
+                <p className="mt-3 text-sm text-zinc-500">
+                  {produtosFiltrados.length} produto(s) encontrado(s)
+                </p>
+
+                <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-200">
+                  <div className="max-h-72 overflow-y-auto bg-white">
+                    {produtosFiltrados.length === 0 ? (
+                      <div className="p-5 text-sm text-zinc-500">
+                        Nenhum produto encontrado para essa busca.
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-zinc-100">
+                        {produtosFiltrados.map((produto) => {
+                          const selecionado =
+                            String(produto.id) === produtoId
+
+                          return (
+                            <button
+                              key={produto.id}
+                              type="button"
+                              onClick={() => {
+                                setProdutoId(String(produto.id))
+                                setErro('')
+                                setSucesso('')
+                              }}
+                              className={`flex w-full items-start justify-between gap-4 px-4 py-4 text-left transition ${
+                                selecionado
+                                  ? 'bg-red-50'
+                                  : 'bg-white hover:bg-zinc-50'
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <p className="break-words font-semibold text-zinc-900">
+                                  {produto.nome}
+                                </p>
+
+                                <p className="mt-1 text-sm text-zinc-500">
+                                  Lote {produto.lote} • Qtd. {produto.quantidade}
+                                </p>
+                              </div>
+
+                              {selecionado && (
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-white">
+                                  <Check size={16} />
+                                </div>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 {produtoSelecionado && (
-                  <div className="mt-8 grid gap-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 sm:grid-cols-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                        Produto
-                      </p>
+                  <div className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-6">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-500">
+                        Produto selecionado
+                      </h3>
 
-                      <p className="mt-2 break-words font-bold text-zinc-900">
-                        {
-                          produtoSelecionado.nome
-                        }
-                      </p>
+                      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-600">
+                        Selecionado
+                      </span>
                     </div>
 
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                        Lote
-                      </p>
+                    <div className="grid gap-5 sm:grid-cols-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                          Produto
+                        </p>
 
-                      <p className="mt-2 font-mono font-bold text-zinc-900">
-                        {
-                          produtoSelecionado.lote
-                        }
-                      </p>
-                    </div>
+                        <p className="mt-2 break-words font-bold text-zinc-900">
+                          {produtoSelecionado.nome}
+                        </p>
+                      </div>
 
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                        Quantidade
-                      </p>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                          Lote
+                        </p>
 
-                      <p className="mt-2 font-bold text-zinc-900">
-                        {
-                          produtoSelecionado.quantidade
-                        }
-                      </p>
+                        <p className="mt-2 font-mono font-bold text-zinc-900">
+                          {produtoSelecionado.lote}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                          Quantidade
+                        </p>
+
+                        <p className="mt-2 font-bold text-zinc-900">
+                          {produtoSelecionado.quantidade}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -319,9 +378,7 @@ export default function FormularioRemocao() {
             <div className="mt-8 flex flex-col-reverse gap-3 border-t border-zinc-100 pt-7 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                onClick={() =>
-                  router.push('/dashboard')
-                }
+                onClick={() => router.push('/dashboard')}
                 className="rounded-xl border border-zinc-200 px-6 py-3 font-semibold text-zinc-600 hover:bg-zinc-50"
               >
                 Cancelar
