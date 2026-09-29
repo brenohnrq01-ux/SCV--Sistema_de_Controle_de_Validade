@@ -93,6 +93,47 @@ function statusValidade(
   }
 }
 
+  const dias = calcularDias(dataValidade)
+
+  if (dias <= 0) {
+    return {
+      texto: 'Vencido',
+      classe: 'bg-zinc-950 text-white',
+      faixa: 'vencido',
+    }
+  }
+
+  if (dias >= 90) {
+    return {
+      texto: `${dias} dias`,
+      classe: 'bg-blue-600 text-white',
+      faixa: 'azul',
+    }
+  }
+
+  if (dias >= 50) {
+    return {
+      texto: `${dias} dias`,
+      classe: 'bg-green-600 text-white',
+      faixa: 'verde',
+    }
+  }
+
+  if (dias >= 20) {
+    return {
+      texto: `${dias} dias`,
+      classe: 'bg-yellow-400 text-zinc-950',
+      faixa: 'amarelo',
+    }
+  }
+
+  return {
+    texto: `${dias} dias`,
+    classe: 'bg-red-600 text-white',
+    faixa: 'vermelho',
+  }
+}
+
 export default function ListaProdutos({
   produtos,
 }: Props) {
