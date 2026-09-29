@@ -101,11 +101,38 @@ export default function ListaProdutos({
   const [estado, setEstado] = useState('todos')
 
   const produtosFiltrados = useMemo(() => {
-    return produtos.filter((produto) => {
-      const status = statusValidade(
-        produto.data_de_validade,
-        produto.estado
-      )
+  const termo = busca.trim().toLowerCase()
+
+  return produtos.filter((produto) => {
+    const status = statusValidade(
+      produto.data_de_validade,
+      produto.estado
+    )
+
+    // BUSCA POR NOME OU LOTE
+    // Se a busca estiver vazia, todos passam por este filtro.
+    const correspondeBusca =
+      termo === '' ||
+      produto.nome.toLowerCase().includes(termo) ||
+      produto.lote.toLowerCase().includes(termo)
+
+    // FILTRO POR FAIXA DE VALIDADE
+    const correspondeFaixa =
+      faixa === 'todos' ||
+      status.faixa === faixa
+
+    // FILTRO POR ESTADO
+    const correspondeEstado =
+      estado === 'todos' ||
+      produto.estado === estado
+
+    return (
+      correspondeBusca &&
+      correspondeFaixa &&
+      correspondeEstado
+    )
+  })
+}, [produtos, busca, faixa, estado])
 
       const termo = busca
         .toLowerCase()
