@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+
 import {
   ArrowRight,
   Bell,
@@ -28,10 +29,11 @@ export default async function DashboardPage() {
     redirect('/')
   }
 
-  // Mantém produtos e notificações sincronizados.
+  // Mantém produtos vencidos e notificações atualizados.
   await supabase.rpc('atualizar_produtos_vencidos')
   await supabase.rpc('gerar_notificacoes_validade')
 
+  // Busca os dados e a permissão do usuário logado.
   const { data: usuario, error } = await supabase
     .from('usuario')
     .select('nome, permissao')
@@ -59,29 +61,35 @@ export default async function DashboardPage() {
     )
   }
 
+  // Permissão do usuário atual.
+  const permissao = usuario.permissao ?? ''
+
+  // Regras de acesso.
   const podeCadastrar = [
-  'admin',
-  'dono',
-  'gerente',
-  'estoquista',
-  'operador',
-].includes(permissao)
+    'admin',
+    'dono',
+    'gerente',
+    'estoquista',
+    'operador',
+  ].includes(permissao)
 
-const podeRemover = [
-  'admin',
-  'dono',
-  'gerente',
-  'estoquista',
-].includes(permissao)
+  const podeRemover = [
+    'admin',
+    'dono',
+    'gerente',
+    'estoquista',
+  ].includes(permissao)
 
-const podeGerarRelatorio = [
-  'admin',
-  'dono',
-].includes(permissao)
+  const podeGerarRelatorio = [
+    'admin',
+    'dono',
+  ].includes(permissao)
 
-const podeGerenciarUsuarios =
-  permissao === 'admin'
+  // Somente Admin pode gerenciar usuários.
+  const podeGerenciarUsuarios =
+    permissao === 'admin'
 
+  // Datas usadas no contador de produtos urgentes.
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
 
@@ -89,6 +97,7 @@ const podeGerenciarUsuarios =
     hoje.toISOString().split('T')[0]
 
   const dataLimite = new Date(hoje)
+
   dataLimite.setDate(
     dataLimite.getDate() + 19
   )
@@ -96,6 +105,7 @@ const podeGerenciarUsuarios =
   const dataLimiteFormatada =
     dataLimite.toISOString().split('T')[0]
 
+  // Total de produtos ativos.
   const { count: totalAtivos } =
     await supabase
       .from('produtos')
@@ -105,6 +115,7 @@ const podeGerenciarUsuarios =
       })
       .eq('estado', 'ATIVO')
 
+  // Total de produtos vencidos.
   const { count: totalVencidos } =
     await supabase
       .from('produtos')
@@ -114,6 +125,7 @@ const podeGerenciarUsuarios =
       })
       .eq('estado', 'VENCIDO')
 
+  // Produtos que vencem entre hoje e 19 dias.
   const { count: totalUrgentes } =
     await supabase
       .from('produtos')
@@ -131,6 +143,7 @@ const podeGerenciarUsuarios =
         dataLimiteFormatada
       )
 
+  // Notificações não lidas do usuário.
   const {
     count: notificacoesNaoLidas,
   } = await supabase
@@ -144,12 +157,13 @@ const podeGerenciarUsuarios =
 
   return (
     <main className="min-h-screen bg-zinc-50">
-      {/* Cabeçalho */}
+      {/* CABEÇALHO */}
       <header className="relative overflow-hidden bg-gradient-to-r from-red-700 via-red-600 to-rose-600 shadow-lg">
         <div className="absolute -left-20 -top-32 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+
         <div className="absolute -bottom-32 right-0 h-72 w-72 rounded-full bg-rose-950/20 blur-3xl" />
 
-        <div className="relative mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+        <div className="relative mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white backdrop-blur">
               <ShieldCheck size={27} />
@@ -157,7 +171,7 @@ const podeGerenciarUsuarios =
 
             <div>
               <h1 className="text-2xl font-black tracking-tight text-white">
-                SCV
+                SCV Alvorada
               </h1>
 
               <p className="text-sm text-red-100">
@@ -171,7 +185,7 @@ const podeGerenciarUsuarios =
       </header>
 
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {/* Boas-vindas */}
+        {/* BOAS-VINDAS */}
         <section className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-wider text-red-600">
             Visão geral
@@ -194,7 +208,7 @@ const podeGerenciarUsuarios =
           </div>
         </section>
 
-        {/* Indicadores */}
+        {/* INDICADORES */}
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Link
             href="/produtos"
@@ -292,7 +306,7 @@ const podeGerenciarUsuarios =
           </Link>
         </section>
 
-        {/* Acesso rápido */}
+        {/* ACESSO RÁPIDO */}
         <section className="mt-12">
           <div className="mb-5">
             <p className="text-sm font-semibold uppercase tracking-wider text-red-600">
@@ -305,6 +319,7 @@ const podeGerenciarUsuarios =
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {/* PRODUTOS */}
             <Link
               href="/produtos"
               className="group rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-xl"
@@ -323,6 +338,7 @@ const podeGerenciarUsuarios =
 
               <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                 Visualizar produtos
+
                 <ArrowRight
                   size={17}
                   className="transition group-hover:translate-x-1"
@@ -330,6 +346,7 @@ const podeGerenciarUsuarios =
               </div>
             </Link>
 
+            {/* CADASTRAR */}
             {podeCadastrar && (
               <Link
                 href="/produtos/cadastrar"
@@ -349,6 +366,7 @@ const podeGerenciarUsuarios =
 
                 <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                   Novo cadastro
+
                   <ArrowRight
                     size={17}
                     className="transition group-hover:translate-x-1"
@@ -357,6 +375,7 @@ const podeGerenciarUsuarios =
               </Link>
             )}
 
+            {/* REMOVER */}
             {podeRemover && (
               <Link
                 href="/produtos/remover"
@@ -376,6 +395,7 @@ const podeGerenciarUsuarios =
 
                 <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                   Remover produto
+
                   <ArrowRight
                     size={17}
                     className="transition group-hover:translate-x-1"
@@ -384,6 +404,7 @@ const podeGerenciarUsuarios =
               </Link>
             )}
 
+            {/* NOTIFICAÇÕES */}
             <Link
               href="/notificacoes"
               className="group relative rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-xl"
@@ -408,6 +429,7 @@ const podeGerenciarUsuarios =
 
               <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                 Ver notificações
+
                 <ArrowRight
                   size={17}
                   className="transition group-hover:translate-x-1"
@@ -415,6 +437,7 @@ const podeGerenciarUsuarios =
               </div>
             </Link>
 
+            {/* RELATÓRIO */}
             {podeGerarRelatorio && (
               <Link
                 href="/relatorios/perdas"
@@ -434,6 +457,7 @@ const podeGerenciarUsuarios =
 
                 <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                   Abrir relatório
+
                   <ArrowRight
                     size={17}
                     className="transition group-hover:translate-x-1"
@@ -442,6 +466,7 @@ const podeGerenciarUsuarios =
               </Link>
             )}
 
+            {/* USUÁRIOS - SOMENTE ADMIN */}
             {podeGerenciarUsuarios && (
               <Link
                 href="/usuarios"
@@ -461,6 +486,7 @@ const podeGerenciarUsuarios =
 
                 <div className="mt-6 flex items-center gap-2 font-semibold text-red-600">
                   Gerenciar usuários
+
                   <ArrowRight
                     size={17}
                     className="transition group-hover:translate-x-1"
@@ -471,7 +497,7 @@ const podeGerenciarUsuarios =
           </div>
         </section>
 
-        {/* Legenda */}
+        {/* LEGENDA */}
         <section className="mt-12 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <TriangleAlert
@@ -512,7 +538,7 @@ const podeGerenciarUsuarios =
         </section>
 
         <footer className="py-10 text-center text-sm text-zinc-400">
-          SCV • Sistema de Controle de Validade
+          SCV Alvorada • Sistema de Controle de Validade
         </footer>
       </div>
     </main>
