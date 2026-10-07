@@ -25,6 +25,7 @@ export default async function CadastrarProdutoPage() {
 
   const permissoesPermitidas = [
     'admin',
+    'dono',
     'gerente',
     'estoquista',
     'operador',
