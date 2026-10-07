@@ -25,6 +25,7 @@ export default async function RemoverProdutoPage() {
 
   const permissoesPermitidas = [
     'admin',
+    'dono',
     'gerente',
     'estoquista',
   ]
