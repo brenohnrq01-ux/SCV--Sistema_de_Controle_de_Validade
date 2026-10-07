@@ -24,6 +24,7 @@ type Props = {
 
 const permissoes = [
   'admin',
+  'dono',
   'gerente',
   'estoquista',
   'operador',
