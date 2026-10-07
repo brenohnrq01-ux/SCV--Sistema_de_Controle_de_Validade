@@ -40,6 +40,13 @@ function estiloPermissao(permissao: string) {
         Icone: Crown,
       }
 
+    case 'dono':
+      return {
+      classe:
+        'bg-amber-100 text-amber-700 border-amber-200',
+      Icone: Crown,
+      }
+      
     case 'gerente':
       return {
         classe:
