@@ -22,12 +22,12 @@ export default async function RelatorioPerdasPage() {
       .single()
 
   if (
-    error ||
-    !usuario ||
-    usuario.permissao !== 'admin'
-  ) {
-    redirect('/dashboard')
-  }
+  !['admin', 'dono'].includes(
+    perfil?.permissao ?? ''
+  )
+) {
+  redirect('/dashboard')
+}
 
   return <RelatorioPerdasClient />
 }
