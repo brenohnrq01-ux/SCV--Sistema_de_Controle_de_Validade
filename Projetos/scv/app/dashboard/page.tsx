@@ -60,23 +60,27 @@ export default async function DashboardPage() {
   }
 
   const podeCadastrar = [
-    'admin',
-    'gerente',
-    'estoquista',
-    'operador',
-  ].includes(usuario.permissao)
+  'admin',
+  'dono',
+  'gerente',
+  'estoquista',
+  'operador',
+].includes(permissao)
 
-  const podeRemover = [
-    'admin',
-    'gerente',
-    'estoquista',
-  ].includes(usuario.permissao)
+const podeRemover = [
+  'admin',
+  'dono',
+  'gerente',
+  'estoquista',
+].includes(permissao)
 
-  const podeGerarRelatorio =
-    usuario.permissao === 'admin'
+const podeGerarRelatorio = [
+  'admin',
+  'dono',
+].includes(permissao)
 
-  const podeGerenciarUsuarios =
-    usuario.permissao === 'admin'
+const podeGerenciarUsuarios =
+  permissao === 'admin'
 
   const hoje = new Date()
   hoje.setHours(0, 0, 0, 0)
